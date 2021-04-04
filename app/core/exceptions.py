@@ -1,0 +1,2 @@
+class DatabaseResultException(Exception):
+    pass
