@@ -5,8 +5,7 @@ WORKDIR app
 
 COPY requirements.txt requirements.txt
 
-RUN pip insatall --upgrade pip && \
+RUN pip install --upgrade pip && \
     pip install -r requirements.txt
 
-
-
+CMD uvicorn main:app --reload --host=0.0.0.0
