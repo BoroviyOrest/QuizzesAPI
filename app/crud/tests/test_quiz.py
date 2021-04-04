@@ -191,11 +191,9 @@ async def test_update_success():
 
 @pytest.mark.asyncio
 async def test_update_exception():
-    expected_quiz_data = simulate_quiz_data_validation(QUIZ_DATA)
-
-    crud = QuizCRUD(MockMongoDBClient())
-    result = await crud.update(QUIZ_DATA['_id'], QuizInCreate(**QUIZ_DATA))
-    assert result.dict() == expected_quiz_data
+    crud = QuizCRUD(MockMongoDBClient(on_error=True))
+    with pytest.raises(DatabaseResultException):
+        await crud.update(QUIZ_DATA['_id'], QuizInCreate(**QUIZ_DATA))
 
 
 @pytest.mark.asyncio
