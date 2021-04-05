@@ -1,8 +1,6 @@
-from typing import List
-
 from pydantic import BaseModel, validator
 
-from models.question import QuestionInResponse, QuestionInCreate
+from models.question import QuestionPartial, QuestionInCreate, QuestionFull, BaseQuestion
 from models.db import DBModelMixin
 
 
@@ -10,6 +8,7 @@ class BaseQuiz(BaseModel):
     name: str
     post_id: int
     description: str
+    questions: list[BaseQuestion]
 
 
 class QuizInCreate(BaseQuiz):
@@ -37,14 +36,23 @@ class QuizInCreate(BaseQuiz):
                 model = mapper[question.type]
                 validated_questions.append(model(**question.dict()))
             except KeyError:
-                raise ValueError(f'Question type {question.type} is not in list: {mapper.keys()}')
+                keys_list = ', '.join(mapper.keys())
+                raise ValueError(f'Question type {question.type} is not in list: [{keys_list}]')
 
         return validated_questions
 
 
-class QuizInDB(QuizInCreate, DBModelMixin):
+class QuizInDB(BaseQuiz, DBModelMixin):
+    questions: list[QuestionFull]
+
+
+class QuizPartial(BaseQuiz, DBModelMixin):
+    questions: list[QuestionPartial]
+
+
+class QuizInResponsePartial(QuizPartial):
     pass
 
 
-class QuizInResponse(BaseQuiz, DBModelMixin):
-    questions: List[QuestionInResponse]
+class QuizInResponseFull(QuizInDB):
+    pass

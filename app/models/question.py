@@ -10,6 +10,14 @@ class BaseQuestion(BaseModel):
     options: Optional[list[str]]
 
 
+class QuestionFull(BaseQuestion):
+    answer: Union[int, str, list[int]]
+
+
+class QuestionPartial(BaseQuestion):
+    pass
+
+
 class QuestionInCreate(BaseQuestion):
     _question_type: str  # I use private attribute, because Pydantic will use this attr otherwise
 
@@ -52,7 +60,3 @@ class CheckboxQuestionInCreate(QuestionInCreate):
                 raise ValueError(f'Answer value {value} is greater then options list length')
 
         return answer
-
-
-class QuestionInResponse(BaseQuestion):
-    pass
