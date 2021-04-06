@@ -7,7 +7,7 @@ from models.quiz import QuizInResponsePartial
 router = APIRouter()
 
 
-@router.get('/', response_model=QuizInResponsePartial)
+@router.get('/{post_id}', response_model=QuizInResponsePartial)
 async def get_quiz_by_post_id(post_id: int, crud: QuizCRUD = Depends(init_crud(QuizCRUD))):
     quiz = await crud.get_by_post_id(post_id)
 

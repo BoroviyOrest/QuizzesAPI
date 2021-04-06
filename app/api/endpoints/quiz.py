@@ -8,14 +8,14 @@ router = APIRouter()
 
 
 @router.get('/{quiz_id}', response_model=QuizInResponseFull)
-async def get_all_quizzes(quiz_id: str, crud: QuizCRUD = Depends(init_crud(QuizCRUD))):
+async def get_quiz_by_id(quiz_id: str, crud: QuizCRUD = Depends(init_crud(QuizCRUD))):
     quiz = await crud.get_by_id(quiz_id)
 
     return quiz
 
 
 @router.get('/', response_model=list[QuizInResponseFull])
-async def get_quiz_by_id(crud: QuizCRUD = Depends(init_crud(QuizCRUD))):
+async def get_all_quizzes(crud: QuizCRUD = Depends(init_crud(QuizCRUD))):
     quizzes_list = await crud.get_many()
 
     return quizzes_list
