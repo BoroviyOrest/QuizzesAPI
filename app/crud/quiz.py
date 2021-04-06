@@ -3,7 +3,7 @@ from typing import Optional
 
 from bson import ObjectId
 
-from core.exceptions import DatabaseResultException
+from db.exceptions import DatabaseResultException
 from crud.base import AbstractCRUD
 from models.quiz import QuizInDB, QuizInCreate
 

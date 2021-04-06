@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from api.api import api_router
 from core.events import on_startup_handler, on_shutdown_handler
 from core.exception_handlers import database_result_error_handler
-from core.exceptions import DatabaseResultException
+from db.exceptions import DatabaseResultException
 
 
 def get_application() -> FastAPI:

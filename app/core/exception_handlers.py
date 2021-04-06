@@ -1,7 +1,7 @@
 from fastapi import Request
 from fastapi.responses import JSONResponse
 
-from core.exceptions import DatabaseResultException
+from db.exceptions import DatabaseResultException
 
 
 async def database_result_error_handler(request: Request, exc: DatabaseResultException):
