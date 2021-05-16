@@ -1,7 +1,7 @@
 import pytest
 from fastapi.testclient import TestClient
 
-from crud.quiz import QuizCRUD
+from services.quiz import QuizService
 from main import app
 
 
@@ -51,7 +51,7 @@ def test_get_quiz_by_post_id(monkeypatch, quiz_data, expected_data_in_response):
     async def mock_get(*args, **kwargs):
         return quiz_data
 
-    monkeypatch.setattr(QuizCRUD, 'get_by_post_id', mock_get)
+    monkeypatch.setattr(QuizService, 'get_by_post_id', mock_get)
 
     with TestClient(app) as client:
         response = client.get('/post_quiz/123')

@@ -2,7 +2,7 @@ import pytest
 from pytest_cases import parametrize_with_cases
 from pydantic import ValidationError
 
-from models.question import TextQuestionInCreate, RadioQuestionInCreate, CheckboxQuestionInCreate
+from models.quiz_question import TextQuestionInCreate, RadioQuestionInCreate, CheckboxQuestionInCreate
 
 
 class IncorrectTextQuestionCases:

@@ -3,7 +3,7 @@ from copy import copy
 import pytest
 from pydantic import ValidationError
 
-from models.question import QuestionInCreate
+from models.quiz_question import QuestionInCreate
 from models.quiz import QuizInCreate
 
 

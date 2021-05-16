@@ -5,20 +5,19 @@ import pytest
 from core.config import database_name
 from db.exceptions import DatabaseResultException
 from crud.quiz import QuizCRUD
-from models.quiz import QuizInCreate
 
 
 class MockMongoDBClient:
-    def __init__(self, quiz_data, on_error=False):
-        self.__mocked_db = {database_name: MockMongoDBDatabase(quiz_data, on_error)}
+    def __init__(self, quiz_data, collection_class=None):
+        self.__mocked_db = {database_name: MockMongoDBDatabase(quiz_data, collection_class)}
 
     def __getitem__(self, item):
         return self.__mocked_db[item]
 
 
 class MockMongoDBDatabase:
-    def __init__(self, quiz_data, on_error=False):
-        collection_class = MockMongoDBCollection if on_error is False else MockMongoDBCollectionException
+    def __init__(self, quiz_data, collection_class=None):
+        collection_class = collection_class or MockMongoDBCollection
         self.__mocked_collections = {'quizzes': collection_class(quiz_data)}
 
     def __getitem__(self, item):
@@ -59,6 +58,11 @@ class MockMongoDBCollectionException:
         return MockMongoDBDeleteResultException()
 
 
+class MockMongoDBCollectionCreateSuccess(MockMongoDBCollection):
+    async def find_one(self, *args, **kwargs):
+        return None
+
+
 class MockMongoDBCursor:
     def __init__(self, quiz_data):
         self.quiz_data = quiz_data
@@ -89,35 +93,19 @@ def simulate_quiz_data_validation(data):
 
 
 @pytest.mark.asyncio
-async def test_get_by_id_success(quiz_data):
+async def test_get_success(quiz_data):
     expected_quiz_data = simulate_quiz_data_validation(quiz_data)
 
     crud = QuizCRUD(MockMongoDBClient(quiz_data))
-    result = await crud.get_by_id(quiz_data['_id'])
+    result = await crud.get(_id=quiz_data['_id'])
     assert result.dict() == expected_quiz_data
 
 
 @pytest.mark.asyncio
-async def test_get_by_id_no_documents(quiz_data):
-    crud = QuizCRUD(MockMongoDBClient(quiz_data, on_error=True))
+async def test_get_no_documents(quiz_data):
+    crud = QuizCRUD(MockMongoDBClient(quiz_data, collection_class=MockMongoDBCollectionCreateSuccess))
     with pytest.raises(DatabaseResultException):
-        await crud.get_by_id(quiz_data['_id'])
-
-
-@pytest.mark.asyncio
-async def test_get_by_post_id_success(quiz_data):
-    expected_quiz_data = simulate_quiz_data_validation(quiz_data)
-
-    crud = QuizCRUD(MockMongoDBClient(quiz_data))
-    result = await crud.get_by_post_id(quiz_data['post_id'])
-    assert result.dict() == expected_quiz_data
-
-
-@pytest.mark.asyncio
-async def test_get_by_post_id_no_documents(quiz_data):
-    crud = QuizCRUD(MockMongoDBClient(quiz_data, on_error=True))
-    with pytest.raises(DatabaseResultException):
-        await crud.get_by_post_id(quiz_data['post_id'])
+        await crud.get(_id=quiz_data['_id'])
 
 
 @pytest.mark.asyncio
@@ -133,27 +121,47 @@ async def test_get_many_success(quiz_data):
 
 @pytest.mark.asyncio
 async def test_create_success(quiz_data):
-    expected_quiz_data = simulate_quiz_data_validation(quiz_data)
+    crud = QuizCRUD(MockMongoDBClient(quiz_data, collection_class=MockMongoDBCollectionCreateSuccess))
 
-    crud = QuizCRUD(MockMongoDBClient(quiz_data))
-    result = await crud.create(QuizInCreate(**quiz_data))
+    expected_quiz_data = simulate_quiz_data_validation(quiz_data)
+    quiz_data = copy(quiz_data)
+    quiz_data.pop('_id')
+
+    result = await crud.create(quiz_data)
     assert result.dict() == expected_quiz_data
 
 
 @pytest.mark.asyncio
-async def test_update_success(quiz_data):
-    expected_quiz_data = simulate_quiz_data_validation(quiz_data)
-
+async def test_create_post_id_exists(quiz_data):
     crud = QuizCRUD(MockMongoDBClient(quiz_data))
-    result = await crud.update(quiz_data['_id'], QuizInCreate(**quiz_data))
+
+    quiz_data = copy(quiz_data)
+    quiz_data.pop('_id')
+
+    with pytest.raises(DatabaseResultException):
+        await crud.create(quiz_data)
+
+
+@pytest.mark.asyncio
+async def test_update_success(quiz_data):
+    crud = QuizCRUD(MockMongoDBClient(quiz_data))
+
+    expected_quiz_data = simulate_quiz_data_validation(quiz_data)
+    quiz_data = copy(quiz_data)
+    quiz_id = quiz_data.pop('_id')
+    result = await crud.update(quiz_id, quiz_data)
     assert result.dict() == expected_quiz_data
 
 
 @pytest.mark.asyncio
 async def test_update_exception(quiz_data):
-    crud = QuizCRUD(MockMongoDBClient(quiz_data, on_error=True))
+    crud = QuizCRUD(MockMongoDBClient(quiz_data, collection_class=MockMongoDBCollectionException))
+
+    quiz_data = copy(quiz_data)
+    quiz_id = quiz_data.pop('_id')
+
     with pytest.raises(DatabaseResultException):
-        await crud.update(quiz_data['_id'], QuizInCreate(**quiz_data))
+        await crud.update(quiz_id, quiz_data)
 
 
 @pytest.mark.asyncio
@@ -165,6 +173,6 @@ async def test_delete_success(quiz_data):
 
 @pytest.mark.asyncio
 async def test_delete_exception(quiz_data):
-    crud = QuizCRUD(MockMongoDBClient(quiz_data, on_error=True))
+    crud = QuizCRUD(MockMongoDBClient(quiz_data, collection_class=MockMongoDBCollectionException))
     with pytest.raises(DatabaseResultException):
         await crud.delete(quiz_data['_id'])

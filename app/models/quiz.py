@@ -1,6 +1,6 @@
 from pydantic import BaseModel, validator
 
-from models.question import QuestionPartial, QuestionInCreate, QuestionFull, BaseQuestion
+from models.quiz_question import QuestionPartial, QuestionInCreate, QuestionFull, BaseQuestion
 from models.db import DBModelMixin
 
 
